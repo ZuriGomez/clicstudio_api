@@ -7,8 +7,17 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://clicstudio.io']
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow requests like curl/postman with no origin
+    const allowedOrigins = ['http://localhost:5174', 'https://clicstudio.io'];
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS policy violation'), false);
+    }
+    return callback(null, true);
+  }
 }));
+
+
 app.use(express.json());
 
 app.use('/api/newsletter', newsletterRoutes);
