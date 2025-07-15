@@ -1,25 +1,38 @@
 const db = require('../db');
 
-exports.addSubscriber = (req, res) => {
+exports.addSubscriber = async (req, res) => {
   const { full_name, phone, email, consent } = req.body;
 
   if (!full_name || !email) {
-    return res.status(400).json({ message: "Full name and email are required." });
+    return res
+      .status(400)
+      .json({ message: 'Full name and email are required.' });
   }
 
-  const sql = `
-    INSERT INTO newsletter_signups (full_name, phone, email, consent)
-    VALUES (?, ?, ?, ?)
-  `;
+  try {
+    const sql = `
+      INSERT INTO newsletter_signups (full_name, phone, email, consent)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+    `;
 
-  db.query(sql, [full_name, phone, email, consent ? 1 : 0], (err, result) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(409).json({ message: 'This email is already subscribed.' });
-      }
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
+    const result = await db.query(sql, [
+      full_name,
+      phone,
+      email,
+      consent ? true : false,
+    ]);
 
     res.status(201).json({ message: 'Successfully subscribed!' });
-  });
+  } catch (err) {
+    if (err.code === '23505') {
+      // 23505 = unique_violation in PostgreSQL
+      return res
+        .status(409)
+        .json({ message: 'This email is already subscribed.' });
+    }
+
+    console.error(err);
+    res.status(500).json({ message: 'Database error', error: err });
+  }
 };
