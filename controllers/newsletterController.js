@@ -1,38 +1,30 @@
-const db = require('../db');
+const db = require('../db'); // assuming mysql2/promise
 
 exports.addSubscriber = async (req, res) => {
-  const { full_name, phone, email, consent } = req.body;
+  const { full_name, email } = req.body;
 
   if (!full_name || !email) {
-    return res
-      .status(400)
-      .json({ message: 'Full name and email are required.' });
+    return res.status(400).json({ message: 'Name and email are required.' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Invalid email address.' });
   }
 
   try {
-    const sql = `
-      INSERT INTO newsletter_signups (full_name, phone, email, consent)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *;
-    `;
-
-    const result = await db.query(sql, [
-      full_name,
-      phone,
-      email,
-      consent ? true : false,
-    ]);
-
+    const [result] = await db.execute(
+      'INSERT INTO newsletter_signups (full_name, email) VALUES (?, ?)',
+      [full_name, email]
+    );
     res.status(201).json({ message: 'Successfully subscribed!' });
   } catch (err) {
-    if (err.code === '23505') {
-      // 23505 = unique_violation in PostgreSQL
-      return res
-        .status(409)
-        .json({ message: 'This email is already subscribed.' });
+    console.error("❌ Database error:", err);
+
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'This email is already subscribed.' });
     }
 
-    console.error(err);
-    res.status(500).json({ message: 'Database error', error: err });
+    res.status(500).json({ message: 'Database error' });
   }
 };
