@@ -1,8 +1,9 @@
-const db = require('../db'); // assuming mysql2/promise
+const db = require('../db'); // mysql2/promise connection pool
 
 exports.addSubscriber = async (req, res) => {
   const { full_name, email } = req.body;
 
+  // Validate input
   if (!full_name || !email) {
     return res.status(400).json({ message: 'Name and email are required.' });
   }
@@ -13,18 +14,27 @@ exports.addSubscriber = async (req, res) => {
   }
 
   try {
+    // Insert subscriber into the database
     const [result] = await db.execute(
       'INSERT INTO newsletter_signups (full_name, email) VALUES (?, ?)',
       [full_name, email]
     );
-    res.status(201).json({ message: 'Successfully subscribed!' });
+
+    // Return success with inserted ID (optional)
+    res.status(201).json({
+      message: 'Successfully subscribed!',
+      subscriberId: result.insertId
+    });
+
   } catch (err) {
     console.error("❌ Database error:", err);
 
+    // Handle duplicate email
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ message: 'This email is already subscribed.' });
     }
 
+    // Handle other database errors
     res.status(500).json({ message: 'Database error' });
   }
 };
