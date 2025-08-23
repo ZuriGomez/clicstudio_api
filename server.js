@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -7,12 +8,13 @@ const contactRoutes = require('./routes/contact');
 dotenv.config();
 const app = express();
 
-// CORS setup
-app.use(cors({
-  origin: 'http://localhost:5173'
-}));
+const allowedOrigins = [process.env.CORS_ORIGIN_DEV, process.env.CORS_ORIGIN_PROD].filter(Boolean);
+app.use(cors({ origin: allowedOrigins }));
 
 app.use(express.json());
+
+// Health check (useful for Railway)
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
 // Routes
 app.use('/api/newsletter', newsletterRoutes);
