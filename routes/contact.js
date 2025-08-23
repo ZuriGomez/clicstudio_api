@@ -3,7 +3,8 @@ const router = express.Router();
 const { addMessage } = require('../controllers/contactController');
 
 router.post('/', addMessage);
-module.exports = router;
 
 // GET - Test route / list messages
 router.get('/', getMessages);
+
+module.exports = router;
