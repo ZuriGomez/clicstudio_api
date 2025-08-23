@@ -5,6 +5,6 @@ const { addMessage } = require('../controllers/contactController');
 router.post('/', addMessage);
 
 // GET - Test route / list messages
-router.get('/', getMessages);
+// router.get('/', getMessages);
 
 module.exports = router;
