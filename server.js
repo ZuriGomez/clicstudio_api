@@ -8,7 +8,7 @@ const contactRoutes = require('./routes/contact');
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [process.env.CORS_ORIGIN_DEV, process.env.CORS_ORIGIN_PROD].filter(Boolean);
+const allowedOrigins = [process.env.CORS_ORIGIN_DEV, process.env.CORS_ORIGIN_PROD,"https://clicstudio.io"].filter(Boolean);
 app.use(cors({ origin: allowedOrigins }));
 
 app.use(express.json());
