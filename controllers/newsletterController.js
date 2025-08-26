@@ -5,23 +5,28 @@ const TABLE_NAME = 'newsletter_signups';
 exports.addSubscriber = async (req, res) => {
   const { full_name, email } = req.body;
 
+  console.log('Request body:', req.body); // Log the incoming request body
+
   // Validate input
   if (!full_name || !email) {
+    console.log('Validation failed: Missing fields');
     return res.status(400).json({ message: 'Name and email are required.' });
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ success: false, message: 'Name and email are required.' });
+    console.log('Validation failed: Invalid email');
+    return res.status(400).json({ success: false, message: 'Invalid email address.' });
   }
 
   try {
-    // Insert subscriber into the database
+    console.log('Inserting into database...');
     const [result] = await db.execute(
       `INSERT INTO ${TABLE_NAME} (full_name, email) VALUES (?, ?)`,
       [full_name, email]
     );
 
+    console.log('Insert successful:', result);
     res.status(201).json({
       success: true,
       message: 'Successfully subscribed!',
