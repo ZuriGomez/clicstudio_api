@@ -9,7 +9,23 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [process.env.CORS_ORIGIN_DEV, process.env.CORS_ORIGIN_PROD,"https://clicstudio.io"].filter(Boolean);
-app.use(cors({ origin: allowedOrigins }));
+app.use((req, res, next) => {
+  console.log('Request Origin:', req.headers.origin); // Debugging log
+  next();
+});
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error(`CORS error: Origin ${origin} not allowed`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
+app.options('*', cors({ origin: allowedOrigins })); // Handle preflight requests
 
 app.use(express.json());
 
