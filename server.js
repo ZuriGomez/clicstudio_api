@@ -8,14 +8,14 @@ const contactRoutes = require("./routes/contact");
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [
-  process.env.CORS_ORIGIN_DEV,
-  process.env.CORS_ORIGIN_PROD,
-  "https://clicstudio.io",
-  "http://clicstudio.io",
-  "https://www.clicstudio.io",
-  "http://www.clicstudio.io",
-].filter(Boolean);
+// const allowedOrigins = [
+//   process.env.CORS_ORIGIN_DEV,
+//   process.env.CORS_ORIGIN_PROD,
+//   "https://clicstudio.io",
+//   "http://clicstudio.io",
+//   "https://www.clicstudio.io",
+//   "http://www.clicstudio.io",
+// ].filter(Boolean);
 
 app.use((req, res, next) => {
   console.log("Request Origin:", req.headers.origin); // Debugging log
@@ -37,12 +37,12 @@ app.use(cors());
 //   allowedHeaders: ["Content-Type", "Authorization", "Accept"],
 // }));
 
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.sendStatus(200);
-}); // Handle preflight requests
+// app.options("*", (req, res) => {
+//   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+//   res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+//   res.header("Access-Control-Allow-Headers", "Content-Type");
+//   res.sendStatus(200);
+// }); // Handle preflight requests
 
 app.use(express.json());
 
