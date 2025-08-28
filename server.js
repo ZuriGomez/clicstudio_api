@@ -9,8 +9,8 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [
-  process.env.CORS_ORIGIN_DEV,
-  process.env.CORS_ORIGIN_PROD,
+  process.env.CORS_ORIGIN_DEV || "http://localhost:3000",
+  process.env.CORS_ORIGIN_PROD || "https://clicstudio.io",
   "https://clicstudio.io",
   "http://clicstudio.io",
   "https://www.clicstudio.io",
@@ -30,11 +30,15 @@ app.use(cors({
       console.error(`CORS error: Origin ${origin} not allowed`);
       callback(new Error('Not allowed by CORS'));
     }
-  }
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
 }));
 
 app.options("*", (req, res) => {
-  console.log("Preflight request from:", req.headers.origin);
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
   res.sendStatus(200);
 }); // Handle preflight requests
 
