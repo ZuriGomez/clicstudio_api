@@ -9,8 +9,8 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [
-  process.env.CORS_ORIGIN_DEV || "http://localhost:3000",
-  process.env.CORS_ORIGIN_PROD || "https://clicstudio.io",
+  process.env.CORS_ORIGIN_DEV,
+  process.env.CORS_ORIGIN_PROD,
   "https://clicstudio.io",
   "http://clicstudio.io",
   "https://www.clicstudio.io",
