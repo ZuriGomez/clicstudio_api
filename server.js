@@ -22,20 +22,21 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.error(`CORS error: Origin ${origin} not allowed`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error(`CORS error: Origin ${origin} not allowed`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 
-app.options("*", cors({ origin: allowedOrigins })); // Handle preflight requests
+app.options("*", (req, res) => {
+  console.log("Preflight request from:", req.headers.origin);
+  res.sendStatus(200);
+}); // Handle preflight requests
 
 app.use(express.json());
 
