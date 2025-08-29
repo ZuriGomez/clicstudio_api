@@ -8,6 +8,7 @@ const contactRoutes = require("./routes/contact");
 dotenv.config();
 const app = express();
 
+// ✅ Whitelist origins
 const allowedOrigins = [
   process.env.CORS_ORIGIN_DEV,
   process.env.CORS_ORIGIN_PROD,
@@ -17,46 +18,39 @@ const allowedOrigins = [
   "http://www.clicstudio.io",
 ].filter(Boolean);
 
-app.use((req, res, next) => {
-  console.log("Request Origin:", req.headers.origin); // Debugging log
-  next();
-});
-
-// app.use(cors());
-
+// ✅ CORS middleware
 app.use(cors({
   origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.error(`CORS error: Origin ${origin} not allowed`);
-      callback(new Error('Not allowed by CORS'));
+      console.error(`❌ CORS blocked: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
     }
   },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  credentials: true, // if you ever need cookies/auth headers
 }));
 
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.sendStatus(200);
-}); // Handle preflight requests
+// ✅ Explicit preflight handling (not strictly needed, but safe)
+app.options("*", cors());
 
+// ✅ Middleware
 app.use(express.json());
-
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
 });
 
-// Health check (useful for Railway)
+// ✅ Health check
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-// Routes
+// ✅ Routes
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/contact", contactRoutes);
 
+// ✅ Start server
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
