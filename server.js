@@ -10,6 +10,7 @@ const app = express();
 
 // ✅ Whitelist origins
 const allowedOrigins = [
+  "http://localhost:5173",
   process.env.CORS_ORIGIN_DEV,
   process.env.CORS_ORIGIN_PROD,
   "https://clicstudio.io",
@@ -18,11 +19,11 @@ const allowedOrigins = [
   "http://www.clicstudio.io",
 ].filter(Boolean);
 
-// ✅ CORS middleware
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps, curl, Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
+    console.log("🔹 Incoming origin:", origin); // <--- log for debugging
+    // allow requests with no origin or from localhost / your production domains
+    if (!origin || origin.startsWith("http://localhost") || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.error(`❌ CORS blocked: ${origin}`);
@@ -31,11 +32,14 @@ app.use(cors({
   },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Accept"],
-  credentials: true, // if you ever need cookies/auth headers
-}));
+  credentials: true,
+};
 
-// ✅ Explicit preflight handling (not strictly needed, but safe)
-app.options("*", cors());
+// ✅ Use cors globally
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight explicitly
+app.options("*", cors(corsOptions));
 
 // ✅ Middleware
 app.use(express.json());
