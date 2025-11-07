@@ -1,13 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { addSubscriber, getSubscribers } = require('../controllers/newsletterController');
+const newsletterController = require("../controllers/newsletterController");
 
-// POST - Add subscriber
-router.post('/', addSubscriber);
-
-// GET - Test route
-router.get('/', getSubscribers);
-
-
+router.post("/", newsletterController.addSubscriber);
 
 module.exports = router;

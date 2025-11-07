@@ -1,67 +1,51 @@
-// controllers/newsletterController.js
-const db = require('../db'); // mysql2/promise connection pool
-const TABLE_NAME = 'newsletter_signups';
+const axios = require("axios");
 
 exports.addSubscriber = async (req, res) => {
   const { full_name, email } = req.body;
 
-  console.log('Request body:', req.body); // Log the incoming request body
-
-  // Validate input
   if (!full_name || !email) {
-    console.log('Validation failed: Missing fields');
-    return res.status(400).json({ message: 'Name and email are required.' });
+    return res.status(400).json({ message: "Name and email are required." });
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    console.log('Validation failed: Invalid email');
-    return res.status(400).json({ success: false, message: 'Invalid email address.' });
+    return res.status(400).json({ success: false, message: "Invalid email address." });
   }
 
   try {
-    console.log('Inserting into database...');
-    const [result] = await db.execute(
-      `INSERT INTO ${TABLE_NAME} (full_name, email) VALUES (?, ?)`,
-      [full_name, email]
+    const mailerLiteKey = process.env.MAILERLITE_API_KEY;
+    const mailerLiteGroupId = process.env.MAILERLITE_GROUP_ID;
+
+    const mlResponse = await axios.post(
+      "https://connect.mailerlite.com/api/subscribers",
+      {
+        email: email,
+        fields: { name: full_name },
+        groups: [mailerLiteGroupId],
+        status: "active",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${mailerLiteKey}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
     );
 
-    console.log('Insert successful:', result);
+    console.log("✅ Added to MailerLite:", mlResponse.data);
+
     res.status(201).json({
       success: true,
-      message: 'Successfully subscribed!',
-      subscriber: {
-        id: result.insertId,
-        full_name,
-        email
-      }
+      message: "Successfully subscribed to the newsletter!",
+      subscriber: mlResponse.data,
     });
+  } catch (error) {
+    console.error("❌ MailerLite error:", error.response?.data || error.message);
 
-  } catch (err) {
-    console.error("❌ Database error:", err);
-
-    if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ message: 'This email is already subscribed.' });
-    }
-
-    res.status(500).json({ message: 'Database error' });
-  }
-};
-
-exports.getSubscribers = async (req, res) => {
-  try {
-    // Fetch all subscribers from the database
-    const [rows] = await db.execute(
-      `SELECT id, full_name, email, created_at FROM ${TABLE_NAME} ORDER BY created_at DESC`
-    );
-
-    // Respond with the list of subscribers
-    res.status(200).json({
-      success: true,
-      subscribers: rows
+    res.status(500).json({
+      success: false,
+      message: "There was an error subscribing to the newsletter.",
     });
-  } catch (err) {
-    console.error("❌ Database error:", err);
-    res.status(500).json({ success: false, message: 'Database error' });
   }
 };
