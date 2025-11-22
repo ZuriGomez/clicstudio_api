@@ -1,32 +1,30 @@
+// controllers/newsletterController.js
+require("dotenv").config();
 const axios = require("axios");
 
 exports.addSubscriber = async (req, res) => {
-  console.log("🟢 Newsletter API hit, body:", req.body);
-
   const { full_name, email } = req.body;
 
   if (!full_name || !email) {
-    console.log("❌ Missing fields");
     return res.status(400).json({ message: "Name and email are required." });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: "Invalid email address." });
   }
 
   try {
     const mailerLiteKey = process.env.MAILERLITE_API_KEY;
     const mailerLiteGroupId = process.env.MAILERLITE_GROUP_ID;
 
-    if (!mailerLiteKey || !mailerLiteGroupId) {
-      console.log("❌ Missing MailerLite env vars", { mailerLiteKey, mailerLiteGroupId });
-      return res.status(500).json({ message: "MailerLite not configured" });
-    }
-
-    console.log("📨 Sending to MailerLite:", { email, full_name, mailerLiteGroupId });
-
+    // ✅ Send subscriber to MailerLite
     const mlResponse = await axios.post(
       "https://connect.mailerlite.com/api/subscribers",
       {
         email: email,
         fields: { name: full_name },
-        groups: [mailerLiteGroupId],
+        groups: [mailerLiteGroupId], // <-- keep as string
         status: "active",
       },
       {
@@ -40,6 +38,7 @@ exports.addSubscriber = async (req, res) => {
 
     console.log("✅ Added to MailerLite:", mlResponse.data);
 
+    // ✅ Return success response
     res.status(201).json({
       success: true,
       message: "Successfully subscribed to the newsletter!",

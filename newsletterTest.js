@@ -21,7 +21,7 @@ const testSubscriber = {
   fields: {
     name: "Test User",
   },
-  groups: [Number(MAILERLITE_GROUP_ID)],
+  groups: [MAILERLITE_GROUP_ID], // keep it as string
 };
 
 // Function to add subscriber
