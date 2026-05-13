@@ -30,13 +30,34 @@ async function migrate() {
       id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       email VARCHAR(255) NOT NULL,
-      phone VARCHAR(20) NOT NULL,
+      phone VARCHAR(20) DEFAULT NULL,
+      service VARCHAR(100) DEFAULT NULL,
       message TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
   console.log("🎉 contact_messages table ready!");
+
+  // Add service column to existing tables (safe to re-run)
+  try {
+    await connection.execute(`
+      ALTER TABLE contact_messages ADD COLUMN service VARCHAR(100) DEFAULT NULL AFTER phone
+    `);
+    console.log("✅ service column added to contact_messages");
+  } catch (err) {
+    if (err.code === 'ER_DUP_FIELDNAME') {
+      console.log("ℹ️  service column already exists, skipping");
+    } else {
+      throw err;
+    }
+  }
+
+  // Make phone nullable on existing tables (safe to re-run)
+  await connection.execute(`
+    ALTER TABLE contact_messages MODIFY COLUMN phone VARCHAR(20) DEFAULT NULL
+  `);
+  console.log("✅ phone column updated to nullable");
 
   await connection.end();
 }

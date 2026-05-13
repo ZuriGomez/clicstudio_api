@@ -2,24 +2,29 @@ const db = require('../db');
 
 exports.addMessage = async (req, res) => {
   try {
-    const { name, email, phone, message } = req.body;
+    const { name, email, phone, service, message } = req.body;
 
-    // Basic input validation
-    if (!name?.trim() || !email?.trim() || !phone?.trim() || !message?.trim()) {
-      return res.status(400).json({ message: 'All fields are required.' });
+    // name, email, message are required; phone and service are optional
+    if (!name?.trim() || !email?.trim() || !message?.trim()) {
+      return res.status(400).json({ message: 'Name, email, and message are required.' });
     }
 
-    // Optional: sanitize inputs (trim)
-    const sanitizedName = name.trim();
-    const sanitizedEmail = email.trim();
-    const sanitizedPhone = phone.trim();
+    // Basic email format check
+    if (!email.includes('@') || !email.includes('.')) {
+      return res.status(400).json({ message: 'Please enter a valid email address.' });
+    }
+
+    const sanitizedName    = name.trim();
+    const sanitizedEmail   = email.trim();
+    const sanitizedPhone   = phone?.trim()   || null;
+    const sanitizedService = service?.trim() || null;
     const sanitizedMessage = message.trim();
 
     // Insert into database
     const [result] = await db.execute(
-      `INSERT INTO contact_messages (name, email, phone, message)
-       VALUES (?, ?, ?, ?)`,
-      [sanitizedName, sanitizedEmail, sanitizedPhone, sanitizedMessage]
+      `INSERT INTO contact_messages (name, email, phone, service, message)
+       VALUES (?, ?, ?, ?, ?)`,
+      [sanitizedName, sanitizedEmail, sanitizedPhone, sanitizedService, sanitizedMessage]
     );
 
     // Respond with success
@@ -49,7 +54,7 @@ exports.addMessage = async (req, res) => {
 exports.getMessages = async (_req, res) => {
   try {
     const [rows] = await db.execute(
-      'SELECT id, name, email, phone, message, created_at FROM contact_messages ORDER BY created_at DESC'
+      'SELECT id, name, email, phone, service, message, created_at FROM contact_messages ORDER BY created_at DESC'
     );
     res.status(200).json(rows);
   } catch (err) {
