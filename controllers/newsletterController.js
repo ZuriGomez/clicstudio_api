@@ -28,6 +28,7 @@ exports.addSubscriber = async (req, res) => {
         status: "active",
       },
       {
+        timeout: 10000,
         headers: {
           Authorization: `Bearer ${mailerLiteKey}`,
           "Content-Type": "application/json",
