@@ -1,4 +1,5 @@
 const db = require('../db');
+const { notifyNewContact } = require('../services/contactNotifier');
 
 exports.addMessage = async (req, res) => {
   try {
@@ -26,6 +27,19 @@ exports.addMessage = async (req, res) => {
        VALUES (?, ?, ?, ?, ?)`,
       [sanitizedName, sanitizedEmail, sanitizedPhone, sanitizedService, sanitizedMessage]
     );
+
+    // Email Zuri about the new message. The message is already saved, so
+    // an email failure is logged but never turns this into an error for
+    // the visitor; it also isn't awaited, so the form responds right away.
+    notifyNewContact({
+      name: sanitizedName,
+      email: sanitizedEmail,
+      phone: sanitizedPhone,
+      service: sanitizedService,
+      message: sanitizedMessage,
+    }).catch((err) => {
+      console.error('❌ Contact email notification failed:', err.response?.data || err.message);
+    });
 
     // Respond with success
     return res.status(201).json({
